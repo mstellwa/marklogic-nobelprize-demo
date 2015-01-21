@@ -1,0 +1,84 @@
+<export><workspace name="Query Examples 1"><query name="XPath query" focus="true" active="true" mode="xquery">xquery version "1.0-ml";
+declare namespace np = "http://marklogic.com/swe/nobel-prize";
+
+    for $d in //np:motivation[fn:contains(fn:lower-case(.), "nuclear")][1 to 10]
+    return $d</query><query name="Simple Query" focus="false" active="true" mode="xquery">(:
+This example will search all documents (in other words the entire database) for any documents containing the
+word "nuclear" regardless of case.  The word can be found anywhere in the document, in any element or attribute, and
+satisfy this query.
+
+We have decided to simply return the first name of the laureate.  The query itself does not say that the word "nuclear" must be
+found in the laureate first name.  If "nuclear" is found anywhere in the document, that document is a match.  But we are choosing
+to return only the laureate first name of a matching document.
+:)
+xquery version "1.0-ml";
+declare namespace np = "http://marklogic.com/swe/nobel-prize";
+
+let $query := cts:search(fn:doc(), "nuclear")
+return $query//np:firstname/string()
+</query><query name="Element Word Query" focus="false" active="true" mode="xquery">(:
+This example will search all documents (in other words the entire database) for any documents containing the
+word "nuclear" in the &lt;motivation&gt; element only.
+
+Compare / contrast this query and its results with the simple word query we looked at earlier.
+:)
+xquery version "1.0-ml";
+declare namespace np = "http://marklogic.com/swe/nobel-prize";
+
+let $query := cts:search(fn:doc(), cts:element-word-query(xs:QName("np:motivation"),"nuclear", "case-insensitive"))
+return $query//np:motivation/string()
+</query><query name="Grammar" focus="false" active="true" mode="xquery">(:
+This example will search all documents and will implement search grammar using CTS.
+
+The goal is to find any laureate that were located in the country of USA AND where a nuclear exits anywhere in the document.
+:)
+xquery version "1.0-ml";
+declare namespace np = "http://marklogic.com/swe/nobel-prize";
+
+let $query := cts:search(fn:doc(),
+                         cts:and-query((cts:element-value-query(xs:QName("np:country"), "usa", "case-insensitive"),
+                                       cts:word-query("nuclear", "case-insensitive")))
+                        )
+return $query//np:firstname/string()</query><query name="Search API 1" focus="false" active="true" mode="xquery">(:
+The Search API enables developers to easily implement a google like search UI
+and build powerful queries without writing as much code.
+
+In this example, you see how the search API understands grammar, enabling a developer to simply
+pass it a string query and get a response.  We simply return the default search API response.
+:)
+xquery version "1.0-ml";
+import module namespace search = "http://marklogic.com/appservices/search" at "/MarkLogic/appservices/search/search.xqy";
+
+let $query := search:search("(nuclear AND usa) OR (economics -germany)")
+return $query</query><query name="Search API 2" focus="false" active="true" mode="xquery">(:
+In this example, we work with the response data that the search API returns
+in order to simply display the firstname of the laureate to the user.
+:)
+
+xquery version "1.0-ml";
+declare namespace np = "http://marklogic.com/swe/nobel-prize";
+import module namespace search = "http://marklogic.com/appservices/search" at "/MarkLogic/appservices/search/search.xqy";
+
+let $query := search:search("(nuclear AND usa) OR (economics -germany)")
+return fn:doc($query//@uri)//np:firstname/string()
+</query><query name="Search API 3" focus="false" active="true" mode="xquery">(:
+In this example, we use a constraint.
+Constraints allow us to control the search API logic,
+for example to isolate the area of the document being searched,
+and become a part of the search grammar.
+:)
+xquery version "1.0-ml";
+declare namespace np = "http://marklogic.com/swe/nobel-prize";
+import module namespace search = "http://marklogic.com/appservices/search" at "/MarkLogic/appservices/search/search.xqy";
+
+let $search-options := &lt;options xmlns="http://marklogic.com/appservices/search"&gt;
+                         &lt;constraint name="category"&gt;
+                           &lt;element-query name="category" ns="http://marklogic.com/swe/nobel-prize"/&gt;
+                         &lt;/constraint&gt;
+                         &lt;constraint name="country"&gt;
+                           &lt;element-query name="country" ns="http://marklogic.com/swe/nobel-prize"/&gt;
+                         &lt;/constraint&gt;
+                        &lt;/options&gt;
+
+let $query := search:search("category:physics AND country:usa", $search-options)
+return $query</query></workspace></export>

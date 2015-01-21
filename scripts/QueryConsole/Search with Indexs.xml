@@ -1,0 +1,16 @@
+<export><workspace name="Search with Indexs"><query name="Count" focus="true" active="true" mode="xquery">xquery version "1.0-ml";
+declare namespace np = "http://marklogic.com/swe/nobel-prize";
+
+cts:count-aggregate(
+  cts:element-reference(
+    xs:QName("np:category")
+  )
+)</query><query name="Using less than" focus="false" active="true" mode="xquery">xquery version "1.0-ml";
+declare namespace np = "http://marklogic.com/swe/nobel-prize";
+
+let $res := cts:search(fn:doc(), 
+  cts:element-range-query(xs:QName("np:year"), "&lt;=",
+      xs:gYear("1910") ) )
+      
+ return $res//np:year
+</query></workspace></export>

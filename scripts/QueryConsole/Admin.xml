@@ -1,0 +1,50 @@
+<export><workspace name="Admin">
+  <query name="Add geocodes" focus="false" active="true" mode="xquery">xquery version "1.0-ml";
+    declare namespace np = "http://marklogic.com/swe/nobel-prize";
+
+    (: Add geocodes to the documents :)
+    for $laureate in /np:laureate,
+    $geocode in /geocode
+    where fn:concat($laureate/np:name, " ", $laureate/np:city, " " , $laureate/np:country) =  $geocode/nameaddress/string()
+    return xdmp:node-insert-child(fn:doc(fn:concat("/nobelprize/",  $laureate/np:id ,".xml"))/np:laureate, (&lt;location&gt;{$geocode/latitude}{$geocode/longitude}&lt;/location&gt;))</query><query name="Delete data" focus="false" active="true" mode="xquery">xquery version "1.0-ml";
+    declare namespace html = "http://www.w3.org/1999/xhtml";
+
+    xdmp:collection-delete("geocodes")</query>
+  <query name="Create Index" focus="true" active="true" mode="xquery">xquery version "1.0-ml";
+import module namespace admin = "http://marklogic.com/xdmp/admin" at "/MarkLogic/admin.xqy";
+
+let $config := admin:get-configuration()
+let $dbid := xdmp:database("nobelprize")
+
+(: country  :)
+let $rangespec := admin:database-range-element-index("string","http://marklogic.com/swe/nobel-prize", "country", "http://marklogic.com/collation/", fn:false() )
+let $config := admin:database-add-range-element-index($config, $dbid, $rangespec)
+
+(: category :)
+let $rangespec := admin:database-range-element-index("string","http://marklogic.com/swe/nobel-prize", "category", "http://marklogic.com/collation/", fn:false() )
+let $config := admin:database-add-range-element-index($config, $dbid, $rangespec)
+
+(: year  :)
+let $rangespec := admin:database-range-element-index("gYear", "http://marklogic.com/swe/nobel-prize", "year", "", fn:false() )
+let $config := admin:database-add-range-element-index($config, $dbid, $rangespec)
+
+(: gender :)
+let $rangespec := admin:database-range-element-index("string", "http://marklogic.com/swe/nobel-prize", "gender", "http://marklogic.com/collation/", fn:false() )
+let $config := admin:database-add-range-element-index($config, $dbid, $rangespec)
+
+(: name :)
+let $rangespec := admin:database-range-element-index("string","http://marklogic.com/swe/nobel-prize", "name", "http://marklogic.com/collation/", fn:false() )
+let $config := admin:database-add-range-element-index($config, $dbid, $rangespec)
+
+(: city :)
+let $rangespec := admin:database-range-element-index("string","http://marklogic.com/swe/nobel-prize", "city", "http://marklogic.com/collation/", fn:false() )
+let $config := admin:database-add-range-element-index($config, $dbid, $rangespec)
+
+(: geo :)
+let $rangespec := admin:database-geospatial-element-pair-index("","location", "", "latitude", "", "longitude" , "wgs84", fn:false() )
+let $config := admin:database-add-geospatial-element-pair-index($config, $dbid, $rangespec)
+
+
+return admin:save-configuration($config);
+</query>
+</workspace></export>
