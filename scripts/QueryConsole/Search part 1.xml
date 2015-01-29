@@ -3,9 +3,9 @@ This example will search all documents (in other words the entire database) for 
 word "nuclear" regardless of case. The word can be found anywhere in the document, in any element or attribute, to
 satisfy this query.
 :)
-cts:search(fn:doc(), "nuclear")</query><query name="Simple Word query - result" focus="false" active="true" mode="xquery">(: 
+cts:search(fn:doc(), "nuclear")</query><query name="Simple Word query - result" focus="false" active="true" mode="xquery">(:
 Search for all doument containing the word nuclear anywhere in them and show
-firstname, surname, catergory and year in the result. 
+firstname, surname, catergory and year in the result.
 
 Since we have used namespace when loading the documents we need to specify it
 in order to select the elements.
@@ -48,7 +48,11 @@ declare namespace np = "http://marklogic.com/swe/nobel-prize";
 cts:search(fn:doc(),
     cts:and-query((cts:element-word-query(xs:QName("np:country"),"sweden", "case-insensitive"),
     cts:element-word-query(xs:QName("np:category"),"physics", "case-insensitive"))))
-</query><query name="Near Query" focus="false" active="true" mode="xquery">(:
+</query><query name="Word and Element query" focus="false" active="true" mode="xquery">declare namespace np = "http://marklogic.com/swe/nobel-prize";
+
+cts:search(fn:doc(), cts:and-query(
+      (cts:word-query("max", "case-insensitive"),
+      cts:element-word-query(xs:QName("np:category"),"physics", "case-insensitive"))))</query><query name="Near Query" focus="false" active="true" mode="xquery">(:
  Using cts:search to find all documents where the word studies and nuclear exists within 3 words from each other in the same text.
  The search is automaticlly using stemming, meaning we will also catch studying for example.
 :)
@@ -56,8 +60,4 @@ cts:search(fn:doc(),
 cts:search(fn:doc(), cts:near-query(
       (cts:word-query("nuclear"),
       cts:word-query("studies")),
-      3))</query><query name="Word and Element query" focus="false" active="true" mode="xquery">declare namespace np = "http://marklogic.com/swe/nobel-prize";
-
- cts:search(fn:doc(), cts:and-query(
-            (cts:word-query("max", "case-insensitive"),
-            cts:element-word-query(xs:QName("np:category"),"physics", "case-insensitive"))))</query></workspace></export>
+      3))</query></workspace></export>
