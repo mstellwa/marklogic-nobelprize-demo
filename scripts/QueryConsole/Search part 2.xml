@@ -1,0 +1,131 @@
+<export><workspace name="Search part 2"><query name="Search API - simple query" focus="true" active="true" mode="xquery">(:
+The Search API enables developers to easily implement a google like search UI
+and build powerful queries without writing as much code.
+:)
+import module namespace search = "http://marklogic.com/appservices/search"
+ at "/MarkLogic/appservices/search/search.xqy";
+
+search:search("studies")
+</query><query name="Search API - and query" focus="false" active="true" mode="xquery">import module namespace search = "http://marklogic.com/appservices/search"
+             at "/MarkLogic/appservices/search/search.xqy";
+
+search:search("(nuclear AND usa) OR (economics -germany)")
+</query>
+<query name="Search API -near query" focus="false" active="true" mode="xquery">import module namespace search = "http://marklogic.com/appservices/search"
+ at "/MarkLogic/appservices/search/search.xqy";
+
+search:search("studies NEAR/3 nuclear")
+</query>
+<query name="Search API - transform result" focus="false" active="true" mode="xquery">import module namespace search = "http://marklogic.com/appservices/search"
+             at "/MarkLogic/appservices/search/search.xqy";
+
+let $search-options := &lt;options xmlns="http://marklogic.com/appservices/search"&gt;
+             &lt;transform-results apply="metadata-snippet"&gt;
+               &lt;preferred-elements&gt;
+                 &lt;element ns="http://marklogic.com/swe/nobel-prize" name="firstname"/&gt;
+                 &lt;element ns="http://marklogic.com/swe/nobel-prize" name="surname"/&gt;
+                 &lt;element ns="http://marklogic.com/swe/nobel-prize" name="category"/&gt;
+                 &lt;element ns="http://marklogic.com/swe/nobel-prize" name="year"/&gt;
+                 &lt;element ns="http://marklogic.com/swe/nobel-prize" name="motivation"/&gt;
+               &lt;/preferred-elements&gt;
+             &lt;/transform-results&gt;
+           &lt;/options&gt;
+let $result := search:search("(nuclear AND usa) OR (economics -germany)", $search-options)
+return $result</query>
+<query name="Search API - raw result" focus="false" active="true" mode="xquery">import module namespace search = "http://marklogic.com/appservices/search"
+             at "/MarkLogic/appservices/search/search.xqy";
+
+let $search-options := &lt;options xmlns="http://marklogic.com/appservices/search"&gt;
+             &lt;transform-results apply="raw"&gt;
+             &lt;/transform-results&gt;
+           &lt;/options&gt;
+let $result := search:search("(nuclear AND usa) OR (economics -germany)", $search-options)
+return $result</query>
+<query name="Search API -element" focus="false" active="true" mode="xquery">import module namespace search = "http://marklogic.com/appservices/search" at "/MarkLogic/appservices/search/search.xqy";
+
+let $search-options := &lt;options xmlns="http://marklogic.com/appservices/search"&gt;
+                         &lt;constraint name="land"&gt;
+                           &lt;container&gt;
+                             &lt;element ns="http://marklogic.com/swe/nobel-prize" name="country"/&gt;
+                           &lt;/container&gt;
+                         &lt;/constraint&gt;
+                       &lt;/options&gt;
+
+let $query := search:search("land:sweden", $search-options)
+return $query</query>
+<query name="Create Index" focus="false" active="true" mode="xquery">import module namespace admin = "http://marklogic.com/xdmp/admin" at "/MarkLogic/admin.xqy";
+
+let $config := admin:get-configuration()
+let $dbid := xdmp:database("nobelprize")
+
+(: country  :)
+let $rangespec := admin:database-range-element-index("string","http://marklogic.com/swe/nobel-prize", "country", "http://marklogic.com/collation/", fn:false() )
+let $config := admin:database-add-range-element-index($config, $dbid, $rangespec)
+
+(: category :)
+let $rangespec := admin:database-range-element-index("string","http://marklogic.com/swe/nobel-prize", "category", "http://marklogic.com/collation/", fn:false() )
+let $config := admin:database-add-range-element-index($config, $dbid, $rangespec)
+
+(: year  :)
+let $rangespec := admin:database-range-element-index("gYear", "http://marklogic.com/swe/nobel-prize", "year", "", fn:false() )
+let $config := admin:database-add-range-element-index($config, $dbid, $rangespec)
+
+(: gender :)
+let $rangespec := admin:database-range-element-index("string", "http://marklogic.com/swe/nobel-prize", "gender", "http://marklogic.com/collation/", fn:false() )
+let $config := admin:database-add-range-element-index($config, $dbid, $rangespec)
+
+(: name :)
+let $rangespec := admin:database-range-element-index("string","http://marklogic.com/swe/nobel-prize", "name", "http://marklogic.com/collation/", fn:false() )
+let $config := admin:database-add-range-element-index($config, $dbid, $rangespec)
+
+(: city :)
+let $rangespec := admin:database-range-element-index("string","http://marklogic.com/swe/nobel-prize", "city", "http://marklogic.com/collation/", fn:false() )
+let $config := admin:database-add-range-element-index($config, $dbid, $rangespec)
+
+(: geo :)
+let $rangespec := admin:database-geospatial-element-pair-index("","location", "", "latitude", "", "longitude" , "wgs84", fn:false() )
+let $config := admin:database-add-geospatial-element-pair-index($config, $dbid, $rangespec)
+
+return admin:save-configuration($config);</query>
+<query name="Search API - specify elements" focus="false" active="true" mode="xquery">xquery version "1.0-ml";
+declare namespace np = "http://marklogic.com/swe/nobel-prize";
+import module namespace search = "http://marklogic.com/appservices/search" at "/MarkLogic/appservices/search/search.xqy";
+
+let $search-options := &lt;options xmlns="http://marklogic.com/appservices/search"&gt;
+                         &lt;constraint name="motivation"&gt;
+                           &lt;container&gt;
+                             &lt;element ns="http://marklogic.com/swe/nobel-prize" name="motivation"/&gt;
+                           &lt;/container&gt;
+                          &lt;/constraint&gt;
+                         &lt;constraint name="year"&gt;
+                           &lt;range type="xs:gYear"&gt;
+                             &lt;element ns="http://marklogic.com/swe/nobel-prize" name="year"/&gt;
+                           &lt;/range&gt;
+                          &lt;/constraint&gt;
+                        &lt;/options&gt;
+
+let $query := search:search("motivation:nuclear AND year GT 2000", $search-options)
+return $query</query><query name="Search API -bucket" focus="false" active="true" mode="xquery">import module namespace search = "http://marklogic.com/appservices/search"
+             at "/MarkLogic/appservices/search/search.xqy";
+
+let $search-options := &lt;options xmlns="http://marklogic.com/appservices/search"&gt;
+                          &lt;constraint name="decade"&gt;
+                            &lt;range type="xs:gYear" facet="true"&gt;
+                              &lt;bucket lt="1930" ge="1920" name="1920s"&gt;1920s&lt;/bucket&gt;
+                              &lt;bucket lt="1940" ge="1930" name="1930s"&gt;1930s&lt;/bucket&gt;
+                              &lt;bucket lt="1950" ge="1940" name="1940s"&gt;1940s&lt;/bucket&gt;
+                              &lt;bucket lt="1960" ge="1950" name="1950s"&gt;1950s&lt;/bucket&gt;
+                              &lt;bucket lt="1970" ge="1960" name="1960s"&gt;1960s&lt;/bucket&gt;
+                              &lt;bucket lt="1980" ge="1970" name="1970s"&gt;1970s&lt;/bucket&gt;
+                              &lt;bucket lt="1990" ge="1980" name="1980s"&gt;1980s&lt;/bucket&gt;
+                              &lt;bucket lt="2000" ge="1990" name="1990s"&gt;1990s&lt;/bucket&gt;
+                              &lt;bucket lt="2010" ge="2000" name="2000s"&gt;1990s&lt;/bucket&gt;
+                              &lt;bucket ge="2010" name="2010s"&gt;2010s&lt;/bucket&gt;
+                              &lt;facet-option&gt;limit=10&lt;/facet-option&gt;
+                              &lt;element ns="http://marklogic.com/swe/nobel-prize" name="year"/&gt;
+                            &lt;/range&gt;
+                        &lt;/constraint&gt;
+                      &lt;/options&gt;
+
+let $query := search:search("decade:1980s", $search-options)
+return $query</query></workspace></export>
