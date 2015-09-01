@@ -1,0 +1,26 @@
+<export><workspace name="R du redo för analys"><query name="Create Schema" focus="true" active="true" content-source="9365473517114589968:0:Apps" mode="xquery">import module namespace view = "http://marklogic.com/xdmp/view" 
+                                    at "/MarkLogic/views.xqy";
+
+view:schema-create("main", ())
+</query><query name="Create view" focus="false" active="true" content-source="9365473517114589968:0:Apps" mode="xquery">import module namespace view = "http://marklogic.com/xdmp/view" 
+                                    at "/MarkLogic/views.xqy";
+view:create(
+"main",
+"winners_organization",(),
+( 
+  view:column("uri", cts:uri-reference()),
+  view:column("org_name", cts:element-reference(fn:QName("http://marklogic.com/swe/nobel-prize","name"))),
+  view:column("year", cts:element-reference(fn:QName("http://marklogic.com/swe/nobel-prize","year"))),
+  view:column("city", cts:element-reference(fn:QName("http://marklogic.com/swe/nobel-prize","city"))),
+  view:column("country", cts:element-reference(fn:QName("http://marklogic.com/swe/nobel-prize","country"))),
+  view:column("category", cts:element-reference(fn:QName("http://marklogic.com/swe/nobel-prize","category")))
+),
+(),
+())
+</query><query name="SQL to test view" focus="false" active="true" content-source="9365473517114589968:0:Apps" mode="sql">SELECT * FROM winners_organization
+
+</query><query name="DESCRIBE Functions" focus="false" active="true" content-source="9365473517114589968:0:Apps" mode="sql">DESCRIBE all functions
+</query><query name="Verify search result" focus="false" active="true" content-source="9365473517114589968:0:Apps" mode="xquery">import module namespace search = "http://marklogic.com/appservices/search"
+                         at "/MarkLogic/appservices/search/search.xqy";
+ 
+search:search("uppsala")</query></workspace></export>
